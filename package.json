@@ -1,0 +1,23 @@
+{
+  "name": "grid",
+  "version": "1.0.0",
+  "description": "GRID is a location-verified neighborhood network where each neighborhood is a verified faction with private feeds and polls, using Flare for identity verification and trustless location proof",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nottherealalanturing/GRID.git"
+  },
+  "keywords": [],
+  "workspaces": [
+    "packages/*"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nottherealalanturing/GRID/issues"
+  },
+  "homepage": "https://github.com/nottherealalanturing/GRID#readme"
+}
