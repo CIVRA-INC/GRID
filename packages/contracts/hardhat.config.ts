@@ -1,42 +1,26 @@
-import type { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig } from 'hardhat/config';
+import '@nomicfoundation/hardhat-toolbox-viem';
+import 'dotenv/config';
 
-import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
-import { configVariable } from "hardhat/config";
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
+const networks: HardhatUserConfig['networks'] = {};
+
+if (PRIVATE_KEY) {
+  networks.coston2 = {
+    url: 'https://coston2-api.flare.network/ext/C/rpc',
+    accounts: [PRIVATE_KEY],
+    chainId: 114,
+  };
+} else {
+  console.log(
+    'PRIVATE_KEY not found in .env, skipping coston2 network configuration.'
+  );
+}
 
 const config: HardhatUserConfig = {
-  plugins: [hardhatToolboxViemPlugin],
-  solidity: {
-    profiles: {
-      default: {
-        version: "0.8.28",
-      },
-      production: {
-        version: "0.8.28",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-    },
-  },
-  networks: {
-    hardhatMainnet: {
-      type: "edr-simulated",
-      chainType: "l1",
-    },
-    hardhatOp: {
-      type: "edr-simulated",
-      chainType: "op",
-    },
-    sepolia: {
-      type: "http",
-      chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
-    },
-  },
+  solidity: '0.8.20',
+  networks, // Use the conditionally configured networks object
 };
 
 export default config;
