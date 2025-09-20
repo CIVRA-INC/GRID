@@ -35,3 +35,4 @@ interface INeighborhoodHub {
 
     function vote(uint256 pollId, uint256 optionIndex) external;
 }
+
