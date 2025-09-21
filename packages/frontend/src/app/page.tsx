@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useFlare } from './hooks/useFlare';
 import { SBNFTChecker } from './components/SBNFTChecker';
 import { NeighborhoodFeed } from './components/NeighborhoodFeed';
-
+import { PollingStation } from './components/PollingStation';
 import './App.css';
 
 function App() {
@@ -14,7 +14,6 @@ function App() {
     error: connectionError,
   } = useFlare();
   const [isVerifiedMember, setIsVerifiedMember] = useState(false);
-  // Add state to toggle between Feed and Polls view
   const [activeView, setActiveView] = useState<'feed' | 'polls'>('feed');
 
   const getNetworkName = (id: bigint | null) => {
