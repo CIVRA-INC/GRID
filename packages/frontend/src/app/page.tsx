@@ -1,20 +1,26 @@
 import { useState } from 'react';
 import { useFlare } from './hooks/useFlare';
-import { SBNFTChecker } from './components/SBNFTChecker'; // Import the new component
+import { SBNFTChecker } from './components/SBNFTChecker';
+import { NeighborhoodFeed } from './components/NeighborhoodFeed';
 import './App.css';
 
 function App() {
-  const { address, chainId, isConnected, connectWallet, error } = useFlare();
-  // Add a new state to track if the user is a verified member.
+  const {
+    address,
+    chainId,
+    isConnected,
+    connectWallet,
+    error: connectionError,
+  } = useFlare();
   const [isVerifiedMember, setIsVerifiedMember] = useState(false);
 
   const getNetworkName = (id: bigint | null) => {
-    if (!id) return "Unknown Network";
+    if (!id) return 'Unknown Network';
     switch (id) {
       case 114n:
-        return "Coston2 Testnet";
+        return 'Coston2 Testnet';
       case 14n:
-        return "Flare Mainnet";
+        return 'Flare Mainnet';
       default:
         return `Unsupported Network (ID: ${id.toString()})`;
     }
@@ -24,7 +30,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Welcome to GRID</h1>
-        <p>Your neighborhood-first social platform.</p>
+        <p>A neighborhood-first social platform.</p>
 
         {!isConnected ? (
           <button onClick={connectWallet} className="connect-button">
@@ -32,24 +38,31 @@ function App() {
           </button>
         ) : (
           <div className="connection-info">
-            <p><strong>Status:</strong> Connected</p>
-            <p><strong>Address:</strong> {address}</p>
-            <p><strong>Network:</strong> {getNetworkName(chainId)}</p>
-
-            {/* Use the SBNFTChecker to determine the user's status */}
+            <p>
+              <strong>Status:</strong> Connected
+            </p>
+            <p>
+              <strong>Address:</strong> {address}
+            </p>
+            <p>
+              <strong>Network:</strong> {getNetworkName(chainId)}
+            </p>
             <SBNFTChecker onVerificationResult={setIsVerifiedMember} />
-
-            {/* Display a different message based on verification status */}
-            {isVerifiedMember ? (
-              <p className="verified-message">✅ You are a verified GRID member.</p>
-            ) : (
-              <p className="unverified-message">❌ You are not yet a verified member of any neighborhood.</p>
-            )}
           </div>
         )}
-
-        {error && <p className="error-message">{error}</p>}
+        {connectionError && <p className="error-message">{connectionError}</p>}
       </header>
+
+      <main>
+        {/* Conditionally render the feed only for verified members */}
+        {isVerifiedMember ? (
+          <NeighborhoodFeed />
+        ) : (
+          isConnected && (
+            <p>You must be a verified member to see the neighborhood feed.</p>
+          )
+        )}
+      </main>
     </div>
   );
 }

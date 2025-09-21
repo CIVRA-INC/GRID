@@ -1,9 +1,15 @@
-// Import the ABI from the JSON file we just copied.
 import SoulboundNeighborhoodBadgeABI from './contracts/SoulboundNeighborhoodBadge.json';
+import NeighborhoodHubABI from './contracts/NeighborhoodHub.json';
+import NeighborhoodHubFactoryABI from './contracts/NeighborhoodHubFactory.json';
 
-// IMPORTANT: This is a placeholder address. We will replace this with the
-// actual deployed contract address in a later step.
-export const SBNFT_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const SBNFT_CONTRACT_ADDRESS =
+  '0x0000000000000000000000000000000000000000';
+export const HUB_FACTORY_CONTRACT_ADDRESS =
+  '0x0000000000000000000000000000000000000000';
 
-// Export the ABI for use in our components.
+export const HARDCODED_HUB_ADDRESS =
+  '0x0000000000000000000000000000000000000000';
+
 export const SBNFT_ABI = SoulboundNeighborhoodBadgeABI.abi;
+export const HUB_ABI = NeighborhoodHubABI.abi;
+export const HUB_FACTORY_ABI = NeighborhoodHubFactoryABI.abi;
