@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useFlare } from './hooks/useFlare';
 import { SBNFTChecker } from './components/SBNFTChecker';
 import { NeighborhoodFeed } from './components/NeighborhoodFeed';
+
 import './App.css';
 
 function App() {
@@ -13,6 +14,8 @@ function App() {
     error: connectionError,
   } = useFlare();
   const [isVerifiedMember, setIsVerifiedMember] = useState(false);
+  // Add state to toggle between Feed and Polls view
+  const [activeView, setActiveView] = useState<'feed' | 'polls'>('feed');
 
   const getNetworkName = (id: bigint | null) => {
     if (!id) return 'Unknown Network';
@@ -54,12 +57,31 @@ function App() {
       </header>
 
       <main>
-        {/* Conditionally render the feed only for verified members */}
         {isVerifiedMember ? (
-          <NeighborhoodFeed />
+          <>
+            <nav className="view-switcher">
+              <button
+                onClick={() => setActiveView('feed')}
+                className={activeView === 'feed' ? 'active' : ''}
+              >
+                Feed
+              </button>
+              <button
+                onClick={() => setActiveView('polls')}
+                className={activeView === 'polls' ? 'active' : ''}
+              >
+                Polls
+              </button>
+            </nav>
+            {activeView === 'feed' && <NeighborhoodFeed />}
+            {activeView === 'polls' && <PollingStation />}
+          </>
         ) : (
           isConnected && (
-            <p>You must be a verified member to see the neighborhood feed.</p>
+            <p>
+              You must be a verified member to see the neighborhood feed and
+              polls.
+            </p>
           )
         )}
       </main>
