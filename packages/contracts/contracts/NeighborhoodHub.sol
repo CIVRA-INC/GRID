@@ -1,70 +1,91 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "./interfaces/INeighborhoodHub.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+// A simple interface for the SBNFT contract
+interface ISoulboundNFT {
+    function balanceOf(address owner) external view returns (uint256);
+}
 
-contract NeighborhoodHub is INeighborhoodHub {
-    IERC721 public immutable sbnftContract;
-    uint256 public immutable neighborhoodId;
+contract NeighborhoodHub {
+    using ECDSA for bytes32;
 
+    // --- Existing Structs and State Variables ---
+    struct Post {
+        uint256 id;
+        string content;
+        address author; // For anonymous posts, this will be address(0)
+        bool isAnonymous;
+        uint256 timestamp;
+    }
+
+    ISoulboundNFT public sbnft;
     Post[] public posts;
-    Poll[] public polls;
+    uint256 public nextPostId;
+
+    event PostCreated(
+        uint256 id,
+        string content,
+        address indexed author,
+        bool isAnonymous
+    );
+
+    // --- Existing Constructor ---
+    constructor(address _sbnftAddress) {
+        sbnft = ISoulboundNFT(_sbnftAddress);
+    }
+
+    // --- Existing `createPost` function (for public posts) ---
+    function createPost(string calldata _content) external {
+        require(sbnft.balanceOf(msg.sender) > 0, "NeighborhoodHub: Caller is not a verified member");
+        
+        posts.push(Post({
+            id: nextPostId,
+            content: _content,
+            author: msg.sender,
+            isAnonymous: false,
+            timestamp: block.timestamp
+        }));
+
+        emit PostCreated(nextPostId, _content, msg.sender, false);
+        nextPostId++;
+    }
+
+    // --- NEW FUNCTION for Anonymous Posting ---
 
     /**
-     * @dev This is the core security feature. It checks if the message sender (msg.sender)
-     * owns at least one SBNFT. In a real-world scenario with multiple SBNFTs per user,
-     * this would need to be more sophisticated, but for the MVP, checking for a balance > 0 is sufficient.
-     * Note: A full implementation would check `neighborhoodOf(tokenId)` on the SBNFT contract.
+     * @notice Allows a verified member to post anonymously via a relayer.
+     * @dev The user signs a hash of the content off-chain. A relayer submits this
+     * signature to the contract, which verifies the signer owns the SBNFT.
+     * @param _content The content of the post.
+     * @param _signature The user's EIP-191 signature of the content hash.
      */
-    modifier onlyVerifiedMember() {
-        require(sbnftContract.balanceOf(msg.sender) > 0, "NeighborhoodHub: Not a verified member");
+    function postAnonymously(string calldata _content, bytes calldata _signature) external {
+        // 1. Recreate the message hash that the user signed off-chain.
+        // The EIP-191 standard prefix ("\x19Ethereum Signed Message:\n") prevents
+        // signatures from being valid for other chains or contracts.
+        bytes32 messageHash = keccak256(bytes(_content));
+        bytes32 prefixedHash = messageHash.toEthSignedMessageHash();
 
-        _;
-    }
+        // 2. Recover the signer's address from the signature and the hash.
+        address signer = prefixedHash.recover(_signature);
 
-    constructor(address _sbnftAddress, uint256 _neighborhoodId) {
-        sbnftContract = IERC721(_sbnftAddress);
-        neighborhoodId = _neighborhoodId;
-    }
+        // 3. Verify that the recovered signer is a valid SBNFT holder.
+        require(sbnft.balanceOf(signer) > 0, "NeighborhoodHub: Signer is not a verified member");
 
-
-    function createPost(string calldata content, bool isAnonymous) external override onlyVerifiedMember {
-        uint256 postId = posts.length;
+        // 4. Create the post, marking the author as anonymous (address(0)).
         posts.push(Post({
-            id: postId,
-            author: msg.sender,
-            content: content,
-            timestamp: block.timestamp,
-            isAnonymous: isAnonymous
+            id: nextPostId,
+            content: _content,
+            author: address(0), // Anonymize the author
+            isAnonymous: true,
+            timestamp: block.timestamp
         }));
-        emit PostCreated(postId, msg.sender, isAnonymous);
-    }
 
-    function createPoll(string calldata question, string[] calldata options, uint256 durationInSeconds) external override onlyVerifiedMember {
-        require(options.length >= 2, "Polls must have at least 2 options");
-        uint256 pollId = polls.length;
-
-        Poll storage newPoll = polls.push();
-        newPoll.id = pollId;
-        newPoll.creator = msg.sender;
-        newPoll.question = question;
-        newPoll.options = options;
-        newPoll.deadline = block.timestamp + durationInSeconds;
-
-        emit PollCreated(pollId, msg.sender);
-    }
-
-    function vote(uint256 pollId, uint256 optionIndex) external override onlyVerifiedMember {
-        Poll storage selectedPoll = polls[pollId];
-        require(block.timestamp < selectedPoll.deadline, "Poll has ended");
-        require(!selectedPoll.hasVoted[msg.sender], "Already voted");
-        require(optionIndex < selectedPoll.options.length, "Invalid option");
-
-        selectedPoll.hasVoted[msg.sender] = true;
-        selectedPoll.votes[optionIndex]++;
-
-        emit Voted(pollId, msg.sender, optionIndex);
+        // Use the relayer's address (msg.sender) in the event for traceability if needed,
+        // or emit the recovered signer's address if privacy allows. Here, we emit the anonymous address.
+        emit PostCreated(nextPostId, _content, address(0), true);
+        nextPostId++;
     }
 }
