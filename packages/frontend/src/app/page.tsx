@@ -4,14 +4,11 @@ import { SBNFTChecker } from './components/SBNFTChecker';
 import { NeighborhoodFeed } from './components/NeighborhoodFeed';
 import { PollingStation } from './components/PollingStation';
 
-// --- NEW IMPORTS ---
 import useAppStore from './store/appStore';
 import CreatePostForm from './components/CreatePostForm';
-// --------------------
 
 import './App.css';
 import { NeighborhoodMap } from '@/components/NeighborhoodMap';
-
 function App() {
   const {
     address,
@@ -23,9 +20,9 @@ function App() {
   const [isVerifiedMember, setIsVerifiedMember] = useState(false);
   const [activeView, setActiveView] = useState<'feed' | 'polls'>('feed');
 
-  // --- NEW: Get global state from Zustand store ---
+
   const { isLoading: isAppLoading, error: globalError } = useAppStore();
-  // ---------------------------------------------
+
 
   const getNetworkName = (id: bigint | null) => {
     if (!id) return 'Unknown Network';
