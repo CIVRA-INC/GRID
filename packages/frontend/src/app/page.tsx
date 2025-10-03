@@ -10,6 +10,7 @@ import CreatePostForm from './components/CreatePostForm';
 // --------------------
 
 import './App.css';
+import { NeighborhoodMap } from '@/components/NeighborhoodMap';
 
 function App() {
   const {
@@ -38,9 +39,12 @@ function App() {
     }
   };
 
+  const userNeighborhoodId = 101;
+
   return (
     <div className="App">
       <header className="App-header">
+        <NeighborhoodMap userNeighborhoodId={userNeighborhoodId} />
         <h1>Welcome to GRID</h1>
         <p>A neighborhood-first social platform.</p>
 
