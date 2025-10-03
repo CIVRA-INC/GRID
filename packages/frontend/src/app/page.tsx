@@ -3,6 +3,12 @@ import { useFlare } from './hooks/useFlare';
 import { SBNFTChecker } from './components/SBNFTChecker';
 import { NeighborhoodFeed } from './components/NeighborhoodFeed';
 import { PollingStation } from './components/PollingStation';
+
+// --- NEW IMPORTS ---
+import useAppStore from './store/appStore';
+import CreatePostForm from './components/CreatePostForm';
+// --------------------
+
 import './App.css';
 
 function App() {
@@ -15,6 +21,10 @@ function App() {
   } = useFlare();
   const [isVerifiedMember, setIsVerifiedMember] = useState(false);
   const [activeView, setActiveView] = useState<'feed' | 'polls'>('feed');
+
+  // --- NEW: Get global state from Zustand store ---
+  const { isLoading: isAppLoading, error: globalError } = useAppStore();
+  // ---------------------------------------------
 
   const getNetworkName = (id: bigint | null) => {
     if (!id) return 'Unknown Network';
@@ -54,6 +64,13 @@ function App() {
         )}
         {connectionError && <p className="error-message">{connectionError}</p>}
       </header>
+      
+      {/* --- NEW: Global Loading and Error Indicators --- */}
+      <div className="global-feedback">
+        {isAppLoading && <p className="loading-message"><b>Processing transaction... Please wait.</b></p>}
+        {globalError && <p className="error-message"><b>Error:</b> {globalError}</p>}
+      </div>
+      {/* --------------------------------------------- */}
 
       <main>
         {isVerifiedMember ? (
@@ -72,7 +89,14 @@ function App() {
                 Polls
               </button>
             </nav>
-            {activeView === 'feed' && <NeighborhoodFeed />}
+            {activeView === 'feed' && (
+              <>
+                {/* --- NEW: Add the create post form to the feed view --- */}
+                <CreatePostForm />
+                {/* --------------------------------------------------- */}
+                <NeighborhoodFeed />
+              </>
+            )}
             {activeView === 'polls' && <PollingStation />}
           </>
         ) : (
